@@ -8,6 +8,7 @@ from typing import IO, List, Tuple
 
 import click
 import texttable
+import json
 
 from . import audit, cache, option, packages
 
@@ -106,4 +107,17 @@ def cli(
 
     vlen, plen = len(vulns), len(pkgs)
     click.echo("Found {} vulnerabilities in {} packages".format(vlen, plen))
+    
+    #Add export to JSON
+    
+    out_file = open("myfile.json", "w")
+    v_dict = []
+    
+    for i in range(len(vulns)):
+        v_dict.append(vulns[i]._asdict())
+
+    json.dump(v_dict, out_file, indent=6)
+  
+    out_file.close()
+    
     sys.exit(vlen != 0)
