@@ -68,6 +68,12 @@ from . import audit, cache, option, packages
     is_flag=True,
     help="Remove existing cache.",
 )
+@option.add(
+    "--json-output",
+    "-j",
+    is_flag=True,
+    help="Output in JSON string",
+)
 def cli(
         installed: bool,
         files: List[IO[str]],
@@ -77,6 +83,7 @@ def cli(
         ignore_ids: Tuple[str],
         ignore_cache: bool,
         reset_cache: bool,
+        json_output: bool,
 ) -> None:
     if reset_cache:
         cache.reset()
@@ -95,29 +102,38 @@ def cli(
     except audit.AuditError as e:
         raise click.ClickException(str(e))
 
+    vlen, plen = len(vulns), len(pkgs)
+    
     if vulns:
-        size = shutil.get_terminal_size()
-        table = texttable.Texttable(max_width=size.columns)
-        table.header(columns)
-        table.set_cols_dtype(["t" for _ in range(len(columns))])
-        table.add_rows([[getattr(v, c.lower(), "")
+    # Export to JSON
+        if json:
+            v_dict = []
+            for i in range(len(vulns)):
+                v_dict.append(vulns[i]._asdict())
+            json_string = json.dumps(v_dict)
+            print(json_string)
+    # ----  
+        else:
+            size = shutil.get_terminal_size()
+            table = texttable.Texttable(max_width=size.columns)
+            table.header(columns)
+            table.set_cols_dtype(["t" for _ in range(len(columns))])
+            table.add_rows([[getattr(v, c.lower(), "")
                          for c in columns]
                         for v in vulns], False)
-        click.echo(table.draw())
-
-    vlen, plen = len(vulns), len(pkgs)
-    click.echo("Found {} vulnerabilities in {} packages".format(vlen, plen))
+            click.echo(table.draw())
+            click.echo("Found {} vulnerabilities in {} packages".format(vlen, plen))
     
     #Add export to JSON
     
-    out_file = open("myfile.json", "w")
-    v_dict = []
+    #out_file = open("myfile.json", "w")
+    #v_dict = []
     
-    for i in range(len(vulns)):
-        v_dict.append(vulns[i]._asdict())
+    #for i in range(len(vulns)):
+    #    v_dict.append(vulns[i]._asdict())
 
-    json.dump(v_dict, out_file, indent=6)
+    #json.dump(v_dict, out_file, indent=6)
   
-    out_file.close()
-    
+    #out_file.close()
+    # ----
     sys.exit(vlen != 0)
