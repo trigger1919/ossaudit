@@ -123,7 +123,8 @@ def cli(
                         for v in vulns], False)
             click.echo(table.draw())
             click.echo("Found {} vulnerabilities in {} packages".format(vlen, plen))
-    
+    else:
+        print("[]")
     #Add export to JSON
     
     #out_file = open("myfile.json", "w")
